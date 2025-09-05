@@ -9,6 +9,7 @@ import time
 import colorsys
 import traceback
 import os
+import array
 from PIL import Image, ImageDraw, ImageFont
 
 # --- Enhanced Visual Constants ---
@@ -77,14 +78,27 @@ STATE_WELCOME = 0
 STATE_PLAYING = 1
 STATE_GAME_OVER = 2
 
+# Sound settings
+SOUND_ENABLED = True
+MUSIC_VOLUME = 0.3
+SFX_VOLUME = 0.5
+
 # Initialize Pygame
 pygame.init()
 pygame.font.init()
 
+# Initialize audio with fallback for headless environments
+try:
+    pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+    AUDIO_AVAILABLE = True
+except pygame.error:
+    AUDIO_AVAILABLE = False
+    print("Audio not available in this environment - running in silent mode")
+
 # Screen setup
 screen_width, screen_height = SCREEN_WIDTH_INIT, SCREEN_HEIGHT_INIT
 screen = pygame.display.set_mode((screen_width, screen_height), pygame.RESIZABLE)
-pygame.display.set_caption("Wild Worm 🐍✨ - Enhanced Visual Edition")
+pygame.display.set_caption("Wild Worm 🐍✨ - Enhanced Visual & Audio Edition")
 clock = pygame.time.Clock()
 
 # Enhanced fonts
@@ -130,15 +144,19 @@ LEVELS = {
 
 # --- Enhanced Visual Functions ---
 def draw_gradient_background(surface, colors, direction='vertical'):
-    """Draw stunning gradient backgrounds with smooth color transitions."""
+    """Draw stunning gradient backgrounds with smooth color transitions - optimized version."""
     if len(colors) < 2:
         colors = [colors[0], colors[0]]
     
     height = surface.get_height()
     width = surface.get_width()
     
+    # Optimization: Draw gradients in chunks instead of line by line for better performance
+    chunk_size = max(1, min(8, height // 75))  # Adaptive chunk size based on screen height
+    
     if direction == 'vertical':
-        for y in range(height):
+        for y in range(0, height, chunk_size):
+            end_y = min(y + chunk_size, height)
             segment_size = height / (len(colors) - 1)
             segment_idx = min(int(y / segment_size), len(colors) - 2)
             segment_progress = (y % segment_size) / segment_size
@@ -150,9 +168,12 @@ def draw_gradient_background(surface, colors, direction='vertical'):
             g = int(color1[1] + (color2[1] - color1[1]) * segment_progress)
             b = int(color1[2] + (color2[2] - color1[2]) * segment_progress)
             
-            pygame.draw.line(surface, (r, g, b), (0, y), (width, y))
+            # Draw a rectangle instead of individual lines for better performance
+            pygame.draw.rect(surface, (r, g, b), (0, y, width, end_y - y))
     else:
-        for x in range(width):
+        chunk_size = max(1, min(8, width // 75))  # Adaptive chunk size
+        for x in range(0, width, chunk_size):
+            end_x = min(x + chunk_size, width)
             segment_size = width / (len(colors) - 1)
             segment_idx = min(int(x / segment_size), len(colors) - 2)
             segment_progress = (x % segment_size) / segment_size
@@ -164,11 +185,18 @@ def draw_gradient_background(surface, colors, direction='vertical'):
             g = int(color1[1] + (color2[1] - color1[1]) * segment_progress)
             b = int(color1[2] + (color2[2] - color1[2]) * segment_progress)
             
-            pygame.draw.line(surface, (r, g, b), (x, 0), (x, height))
+            # Draw a rectangle instead of individual lines for better performance
+            pygame.draw.rect(surface, (r, g, b), (x, 0, end_x - x, height))
 
 def create_spectacular_particle(pos, color):
     """Create enhanced particles with sparkle effects."""
     global particles
+    play_particle_sound()  # Add sound effect
+    
+    # Optimization: Limit total particles to maintain performance
+    if len(particles) > 150:  # Maximum particle limit
+        particles = particles[-100:]  # Keep only the 100 most recent particles
+    
     for _ in range(random.randint(5, 12)):
         speed = random.uniform(2.0, 8.0)
         angle = random.uniform(0, math.pi * 2)
@@ -341,6 +369,76 @@ def draw_background_stars(surface):
         
         pygame.draw.circle(surface, color, (int(star['pos'][0]), int(star['pos'][1])), 1)
 
+def generate_tone(frequency, duration, sample_rate=22050, volume=0.5):
+    """Generate a simple tone sound effect."""
+    if not SOUND_ENABLED or not AUDIO_AVAILABLE:
+        return None
+    
+    try:
+        frames = int(duration * sample_rate)
+        arr = array.array('h')  # 16-bit signed integers
+        
+        for i in range(frames):
+            # Simple sine wave with fade out
+            fade = 1.0 - (i / frames) * 0.8  # Gentle fade
+            wave = volume * fade * math.sin(2 * math.pi * frequency * i / sample_rate)
+            sample = int(wave * 32767)
+            arr.append(sample)  # Left channel
+            arr.append(sample)  # Right channel
+        
+        sound = pygame.sndarray.make_sound(arr)
+        return sound
+    except:
+        return None
+
+def play_click_sound():
+    """Play a click sound effect."""
+    if SOUND_ENABLED and AUDIO_AVAILABLE:
+        try:
+            sound = generate_tone(800, 0.1, volume=SFX_VOLUME * 0.3)
+            if sound:
+                sound.play()
+        except:
+            pass
+
+def play_particle_sound():
+    """Play a particle creation sound effect."""
+    if SOUND_ENABLED and AUDIO_AVAILABLE:
+        try:
+            sound = generate_tone(1200, 0.05, volume=SFX_VOLUME * 0.2)
+            if sound:
+                sound.play()
+        except:
+            pass
+
+def play_life_lost_sound():
+    """Play a sound when life is lost."""
+    if SOUND_ENABLED and AUDIO_AVAILABLE:
+        try:
+            sound = generate_tone(200, 0.3, volume=SFX_VOLUME * 0.5)
+            if sound:
+                sound.play()
+        except:
+            pass
+
+def play_game_over_sound():
+    """Play a game over sound effect."""
+    if SOUND_ENABLED and AUDIO_AVAILABLE:
+        try:
+            # Play a descending tone sequence
+            for i, freq in enumerate([400, 300, 200, 150]):
+                sound = generate_tone(freq, 0.2, volume=SFX_VOLUME * 0.4)
+                if sound:
+                    pygame.time.wait(50)  # Small delay between tones
+                    sound.play()
+        except:
+            pass
+
+def toggle_sound():
+    """Toggle sound on/off."""
+    global SOUND_ENABLED
+    SOUND_ENABLED = not SOUND_ENABLED
+
 def draw_enhanced_snake(surface):
     """Draw the snake with enhanced visual effects."""
     global snake_wobble_angle
@@ -459,7 +557,7 @@ def draw_welcome_screen(surface):
                       FONT_TITLE, title_color, center=True, glow=True, pulse=True)
     
     # Draw instructions
-    draw_enhanced_text(surface, "Enhanced Visual Edition", (screen_width // 2, screen_height // 4 + 80), 
+    draw_enhanced_text(surface, "Enhanced Visual & Audio Edition", (screen_width // 2, screen_height // 4 + 80), 
                       FONT_MEDIUM, NEON_CYAN, center=True, glow=True)
     
     draw_enhanced_text(surface, "Click to Start!", (screen_width // 2, screen_height // 2), 
@@ -470,6 +568,10 @@ def draw_welcome_screen(surface):
     
     draw_enhanced_text(surface, "Press G to cycle gradient backgrounds", (screen_width // 2, screen_height // 2 + 100), 
                       FONT_SMALL, NEON_GREEN, center=True)
+    
+    sound_status = "ON" if SOUND_ENABLED and AUDIO_AVAILABLE else "OFF" if AUDIO_AVAILABLE else "N/A"
+    draw_enhanced_text(surface, f"Press S to toggle sound [{sound_status}]", (screen_width // 2, screen_height // 2 + 140), 
+                      FONT_SMALL, NEON_CYAN, center=True)
     
     # Draw particles
     draw_enhanced_particles(surface)
@@ -561,9 +663,11 @@ def update_game(dt):
         request_timer -= dt
         if request_timer <= 0:
             lives -= 1
+            play_life_lost_sound()  # Add sound effect for life loss
             request_timer = request_time_limit
             if lives <= 0:
                 game_state = STATE_GAME_OVER
+                play_game_over_sound()  # Add sound effect for game over
         
         # Move snake
         if snake_segments:
@@ -598,8 +702,12 @@ def handle_events():
                 current_idx = gradients.index(current_gradient)
                 current_gradient = gradients[(current_idx + 1) % len(gradients)]
                 create_spectacular_particle((screen_width//2, screen_height//2), NEON_CYAN)
+            elif event.key == pygame.K_s:
+                toggle_sound()
+                create_spectacular_particle((screen_width//2, screen_height//2), NEON_YELLOW)
         
         if event.type == pygame.MOUSEBUTTONDOWN:
+            play_click_sound()  # Add click sound effect
             if game_state == STATE_WELCOME:
                 reset_game()
             elif game_state == STATE_GAME_OVER:
@@ -609,7 +717,6 @@ def handle_events():
                 create_spectacular_particle(pygame.mouse.get_pos(), random.choice(ENHANCED_PARTICLE_COLORS))
         
         if event.type == pygame.VIDEORESIZE:
-            global screen_width, screen_height, background_stars
             screen_width, screen_height = event.w, event.h
             background_stars = []  # Regenerate stars for new screen size
     
@@ -672,11 +779,14 @@ if __name__ == "__main__":
     print("- Rainbow snake mode")
     print("- Neon color palette")
     print("- Smooth 60 FPS animations")
+    print("- Dynamic sound effects and audio feedback")
     print("\nControls:")
     print("- Click to interact")
     print("- SPACE: Toggle Project Approach mode")
     print("- G: Cycle gradient backgrounds")
+    print("- S: Toggle sound effects")
     print("- ESC: Exit")
-    print("\nEnjoy the enhanced visuals! 🎮✨")
+    print(f"\nAudio Status: {'Available' if AUDIO_AVAILABLE else 'Not Available (Silent Mode)'}")
+    print("Enjoy the enhanced visuals and audio! 🎮✨🔊")
     
     main()

@@ -26,6 +26,13 @@ python Enhanced_Wild_Worm_Visual_Demo.py
 - **Animated Borders**: Moving highlights around UI elements
 - **Twinkling Star Field**: Dynamic background with animated stars
 
+### 🔊 Audio System
+- **Dynamic Sound Effects**: Procedurally generated tones for all game events
+- **Click Feedback**: Audio confirmation for all user interactions
+- **Game Event Sounds**: Unique audio cues for life loss, game over, and achievements
+- **Toggle Audio**: Press S to enable/disable sound effects
+- **Graceful Fallback**: Automatic silent mode for systems without audio hardware
+
 ### 🐍 Enhanced Snake Visuals
 - **Rainbow Mode**: Psychedelic color cycling in Project Approach mode
 - **Wobble Animation**: Smooth sine wave motion effects
@@ -48,6 +55,7 @@ python Enhanced_Wild_Worm_Visual_Demo.py
 - **Click**: Interact with game elements
 - **SPACE**: Toggle Project Approach mode (rainbow snake effect)
 - **G**: Cycle through gradient backgrounds
+- **S**: Toggle sound effects on/off
 - **ESC**: Exit game
 
 ## Visual Modes
@@ -78,6 +86,12 @@ python Enhanced_Wild_Worm_Visual_Demo.py
 - 30% chance of sparkle effects with radiating rays
 - Extended lifetimes for more impact
 - Neon color variations for vibrancy
+
+### Advanced Audio System
+- Procedurally generated sound effects using sine waves
+- Dynamic frequency modulation for different game events
+- Volume control and audio toggle functionality
+- Cross-platform audio support with graceful fallbacks
 
 ### Advanced Text Rendering
 - Multi-directional glow effects
