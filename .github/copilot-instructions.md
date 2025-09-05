@@ -109,7 +109,7 @@ python3 -c "import pygame, PIL; print('Dependencies OK')" 2>&1 | grep "Dependenc
 export SDL_VIDEODRIVER=dummy
 timeout 5 python3 Enhanced_Wild_Worm_Visual_Demo.py 2>&1 | grep -E "(Starting Enhanced|Audio Status)"
 # Expected output: "🐍✨ Starting Enhanced Wild Worm Game ✨🐍" and "Audio Status: Not Available"
-# timeout command will terminate with exit code 143 - this is EXPECTED
+# timeout command will terminate with exit code 124 - this is EXPECTED and indicates success
 ```
 
 ## Installation Commands Reference
