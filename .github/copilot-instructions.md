@@ -82,7 +82,7 @@ Brain-zapper is a Python-based pygame visual game featuring spectacular visual e
 
 ### Key Files and Locations
 ```
-/home/runner/work/Brain-zapper/Brain-zapper/
+project-root/
 ├── Enhanced_Wild_Worm_Visual_Demo.py          # MAIN GAME FILE - Core executable
 ├── Wild_Worm_Game_(Enhanced).ipynb            # Jupyter notebook version
 ├── README.md                                  # Basic project description  
