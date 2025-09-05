@@ -581,7 +581,7 @@ def update_game(dt):
 
 def handle_events():
     """Handle pygame events."""
-    global running, game_state, current_gradient, project_approach_active
+    global running, game_state, current_gradient, project_approach_active, screen_width, screen_height, background_stars
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -609,7 +609,6 @@ def handle_events():
                 create_spectacular_particle(pygame.mouse.get_pos(), random.choice(ENHANCED_PARTICLE_COLORS))
         
         if event.type == pygame.VIDEORESIZE:
-            global screen_width, screen_height, background_stars
             screen_width, screen_height = event.w, event.h
             background_stars = []  # Regenerate stars for new screen size
     
