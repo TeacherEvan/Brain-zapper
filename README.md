@@ -17,7 +17,8 @@ This game promotes:
 - Python 3.6+
 - Required packages:
 ```bash
-pip install pygame pillow
+pip install pygame pillow  # or, for pinned versions:
+pip install -r requirements.txt
 ```
 
 ### Run the Game

@@ -26,3 +26,5 @@ Thumbs.db
 build/
 dist/
 *.egg-info/
+# Hermes surgical-implementation V2 audit scratch (local-only, never commit)
+docs/.scratch-audit/
