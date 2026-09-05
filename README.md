@@ -26,6 +26,31 @@ pip install -r requirements.txt
 python Enhanced_Wild_Worm_Visual_Demo.py
 ```
 
+## ✅ Tests
+
+The repo ships with a `pytest` suite (44 tests) covering the data tables,
+RGB palettes, gradient themes, particle + star factories, audio gates,
+and `reset_game`. CI runs it on every push via
+`.github/workflows/python-tests.yml`.
+
+Local run (headless, no display required):
+
+```bash
+pip install -r requirements.txt pytest
+SDL_VIDEODRIVER=dummy PYGAME_HIDE_SUPPORT_PROMPT=1 pytest -q
+```
+
+`SDL_VIDEODRIVER=dummy` lets pytest import the pygame module without
+opening a window, and `PYGAME_HIDE_SUPPORT_PROMPT=1` suppresses the
+pygame community banner. Both env vars are already set by the CI
+workflow; they are documented here for local + container runs.
+
+Quick syntax-only check:
+
+```bash
+python3 -m py_compile Enhanced_Wild_Worm_Visual_Demo.py
+```
+
 ## 🎮 Features
 
 ### 🌈 Enhanced Visuals
