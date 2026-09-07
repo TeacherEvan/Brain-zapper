@@ -132,6 +132,7 @@ request_time_limit = 10
 snake_request = "Circle"
 snake_wobble_angle = 0
 project_approach_active = False
+RANDOM_REQUEST_MODE = False
 
 # Level data
 LEVELS = {
@@ -141,6 +142,23 @@ LEVELS = {
     4: {'target': 8, 'time': 16, 'speed_mult': 1.3},
     5: {'target': 10, 'time': 16, 'speed_mult': 1.4},
 }
+
+# --- Random Request Mode (R key) ---
+RANDOM_REQUEST_POOL = SHAPE_NAMES + FRUITS + VEGETABLES
+
+def pick_random_request(rng=None):
+    """Return a random request drawn from SHAPE_NAMES+FRUITS+VEGETABLES.
+
+    Pass `rng=random.Random(seed)` for deterministic tests.
+    """
+    r = rng if rng is not None else random
+    return r.choice(RANDOM_REQUEST_POOL)
+
+
+def random_mode_label():
+    """Return a short status string for the welcome screen."""
+    return "Random: ON" if RANDOM_REQUEST_MODE else "Random: OFF"
+
 
 # --- Enhanced Visual Functions ---
 def draw_gradient_background(surface, colors, direction='vertical'):
@@ -648,16 +666,18 @@ def draw_game_over_screen(surface):
 
 def reset_game():
     """Reset game variables."""
-    global lives, score, request_timer, snake_segments, game_state
+    global lives, score, request_timer, snake_segments, game_state, snake_request
     lives = 3
     score = 0
     request_timer = request_time_limit
     snake_segments = [(screen_width//2, screen_height//2 + i*20) for i in range(5)]
     game_state = STATE_PLAYING
+    if RANDOM_REQUEST_MODE:
+        snake_request = pick_random_request()
 
 def update_game(dt):
     """Update game logic."""
-    global request_timer, lives, game_state, snake_segments
+    global request_timer, lives, game_state, snake_segments, snake_request
     
     if game_state == STATE_PLAYING:
         request_timer -= dt
@@ -668,6 +688,8 @@ def update_game(dt):
             if lives <= 0:
                 game_state = STATE_GAME_OVER
                 play_game_over_sound()  # Add sound effect for game over
+            elif RANDOM_REQUEST_MODE:
+                snake_request = pick_random_request()
         
         # Move snake
         if snake_segments:
@@ -705,6 +727,10 @@ def handle_events():
             elif event.key == pygame.K_s:
                 toggle_sound()
                 create_spectacular_particle((screen_width//2, screen_height//2), NEON_YELLOW)
+            elif event.key == pygame.K_r:
+                global RANDOM_REQUEST_MODE
+                RANDOM_REQUEST_MODE = not RANDOM_REQUEST_MODE
+                create_spectacular_particle((screen_width//2, screen_height//2), NEON_CYAN)
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             play_click_sound()  # Add click sound effect

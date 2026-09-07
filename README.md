@@ -40,12 +40,14 @@ python Enhanced_Wild_Worm_Visual_Demo.py
 - **Procedurally generated tones** for game events
 - **Toggle audio** on/off (Press S)
 - **Graceful fallback** for systems without audio
+- **Random Request mode**: Snake's request rotates randomly across shapes, fruits, and vegetables on every life-loss
 
 ### 🎯 Controls
 - **Click**: Interact with game elements
 - **SPACE**: Toggle Project Approach mode (rainbow effect)
 - **G**: Cycle through gradient backgrounds
 - **S**: Toggle sound on/off
+- **R**: Toggle Random Request mode (snake picks a new target from shapes/fruits/vegetables)
 - **ESC**: Exit game
 
 ## 📁 File Structure
