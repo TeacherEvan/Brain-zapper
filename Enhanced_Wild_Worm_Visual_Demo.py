@@ -130,6 +130,10 @@ score = 0
 request_timer = 0
 request_time_limit = 10
 snake_request = "Circle"
+
+# Gameplay loop state (added by surgical-implementation run)
+current_level = 1
+food = None
 snake_wobble_angle = 0
 project_approach_active = False
 
@@ -646,18 +650,75 @@ def draw_game_over_screen(surface):
     # Draw particles
     draw_enhanced_particles(surface)
 
+# --- Gameplay loop: request, food, scoring, level progression ----------------
+
+def pick_new_request():
+    """Randomly pick the next request from the full pool and assign it."""
+    global snake_request
+    pool = SHAPE_NAMES + FRUITS + VEGETABLES
+    snake_request = random.choice(pool)
+
+
+def spawn_food():
+    """Spawn a food item at a random in-bounds position.
+
+    Returns a dict with pos, type, and color so the caller can both detect
+    collisions and render the item.
+    """
+    food_type = random.choice(SHAPE_NAMES + FRUITS + VEGETABLES)
+    color = random.choice(ENHANCED_PARTICLE_COLORS)
+    pos = (random.randint(80, screen_width - 80),
+           random.randint(180, screen_height - 80))
+    return {"pos": pos, "type": food_type, "color": color}
+
+
+def check_food_collision(food_item, tolerance=25):
+    """Return True when the snake head is within tolerance of the food."""
+    if not food_item or not snake_segments:
+        return False
+    head_x, head_y = snake_segments[0]
+    fx, fy = food_item["pos"]
+    return math.hypot(head_x - fx, head_y - fy) <= tolerance
+
+
+def award_score(points=1):
+    """Increment the score global by points."""
+    global score
+    score += points
+
+
+def advance_level():
+    """Promote to the next level when the current target is met.
+
+    Returns True when the level changed. A level with no entry in LEVELS is
+    a no-op (returns False) so the game never crashes on missing data.
+    """
+    global current_level, request_time_limit, snake_speed
+    if current_level not in LEVELS:
+        return False
+    target = LEVELS[current_level]["target"]
+    if score >= target and current_level < max(LEVELS.keys()):
+        current_level += 1
+        request_time_limit = LEVELS[current_level]["time"]
+        snake_speed = int(3 * LEVELS[current_level]["speed_mult"])
+        return True
+    return False
+
+
 def reset_game():
     """Reset game variables."""
-    global lives, score, request_timer, snake_segments, game_state
+    global lives, score, request_timer, snake_segments, game_state, current_level, food
     lives = 3
     score = 0
     request_timer = request_time_limit
     snake_segments = [(screen_width//2, screen_height//2 + i*20) for i in range(5)]
     game_state = STATE_PLAYING
+    current_level = 1
+    food = spawn_food()
 
 def update_game(dt):
     """Update game logic."""
-    global request_timer, lives, game_state, snake_segments
+    global request_timer, lives, game_state, snake_segments, food
     
     if game_state == STATE_PLAYING:
         request_timer -= dt
@@ -669,6 +730,13 @@ def update_game(dt):
                 game_state = STATE_GAME_OVER
                 play_game_over_sound()  # Add sound effect for game over
         
+        # Food loop: eat when the snake head reaches the food.
+        if food is not None and check_food_collision(food):
+            award_score(1)
+            pick_new_request()
+            food = spawn_food()
+            advance_level()
+
         # Move snake
         if snake_segments:
             head_x, head_y = snake_segments[0]
