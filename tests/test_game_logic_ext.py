@@ -241,3 +241,53 @@ def test_create_spectacular_particle_color_from_pool():
     finally:
         game.play_particle_sound = original
         game.particles.clear()
+
+
+# --- OBJ-016 -- VIDEORESIZE regenerates background stars -------------------
+
+def _fake_resize_event(width, height):
+    """Build a pygame VIDEORESIZE event with the given dimensions."""
+    import pygame
+    ev = pygame.event.Event(pygame.VIDEORESIZE, {"w": width, "h": height})
+    return ev
+
+
+def test_videoresize_regenerates_background_stars():
+    """A VIDEORESIZE event must clear and rebuild the starfield for the new size.
+
+    Regression for the pre-existing bug where handle_events reassigned
+    ``background_stars = []`` as a LOCAL variable (no ``global``), so the
+    module-level starfield never refreshed on resize.
+    """
+    game = _load_game_module()
+    # Seed the starfield with stale entries from a LARGER old screen so the
+    # broken code (global never cleared) would leave out-of-bounds stars.
+    old_w, old_h = 1920, 1080
+    game.background_stars.clear()
+    for i in range(100):
+        game.background_stars.append({
+            "pos": [old_w - 1 - i, old_h - 1 - i],
+            "brightness": 0.5, "twinkle_speed": 0.001,
+        })
+    assert len(game.background_stars) == 100
+    # Sanity: the stale stars are valid for the OLD (large) screen.
+    for star in game.background_stars:
+        x, y = star["pos"]
+        assert 0 <= x <= old_w and 0 <= y <= old_h
+
+    # Resize to a smaller window.
+    new_w, new_h = 640, 480
+    events = [_fake_resize_event(new_w, new_h)]
+    original_get = game.pygame.event.get
+    game.pygame.event.get = lambda: events
+    try:
+        game.handle_events()
+    finally:
+        game.pygame.event.get = original_get
+
+    # Starfield must have been rebuilt for the NEW (smaller) dimensions.
+    assert len(game.background_stars) == 100
+    for star in game.background_stars:
+        x, y = star["pos"]
+        assert 0 <= x <= new_w, f"star x {x} outside new width {new_w}"
+        assert 0 <= y <= new_h, f"star y {y} outside new height {new_h}"

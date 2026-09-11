@@ -354,6 +354,7 @@ def draw_animated_border(surface, rect, color, thickness=2, animation_speed=0.1)
 def create_background_stars():
     """Create twinkling background stars."""
     global background_stars
+    background_stars.clear()
     if len(background_stars) < 100:
         for _ in range(100 - len(background_stars)):
             background_stars.append({
@@ -754,6 +755,8 @@ def update_game(dt):
 def handle_events():
     """Handle pygame events."""
     global running, game_state, current_gradient, project_approach_active
+    global background_stars, screen_width, screen_height
+    global running, game_state, current_gradient, project_approach_active
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -786,7 +789,8 @@ def handle_events():
         
         if event.type == pygame.VIDEORESIZE:
             screen_width, screen_height = event.w, event.h
-            background_stars = []  # Regenerate stars for new screen size
+            background_stars.clear()  # Regenerate stars for new screen size
+            create_background_stars()
     
     return True
 
