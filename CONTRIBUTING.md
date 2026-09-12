@@ -94,7 +94,7 @@ Controls:
 python -m pytest -q
 ```
 
-Expected result: `57 passed in ~0.3s` on a modern machine.
+Expected result: `82 passed in ~0.4s` on a modern machine.
 
 ### Headless / CI
 

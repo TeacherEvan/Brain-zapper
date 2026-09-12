@@ -352,12 +352,15 @@ def draw_animated_border(surface, rect, color, thickness=2, animation_speed=0.1)
         pygame.draw.circle(surface, highlight_color, (int(x), int(y)), thickness * 2)
 
 def create_background_stars():
-    """Create twinkling background stars."""
+    """Create twinkling background stars.
+
+    Always rebuilds the starfield from scratch so repeated calls are
+    idempotent: the global never grows beyond 100 entries.
+    """
     global background_stars
     background_stars.clear()
-    if len(background_stars) < 100:
-        for _ in range(100 - len(background_stars)):
-            background_stars.append({
+    for _ in range(100):
+        background_stars.append({
                 'pos': [random.randint(0, screen_width), random.randint(0, screen_height)],
                 'brightness': random.uniform(0.3, 1.0),
                 'twinkle_speed': random.uniform(0.001, 0.005)
@@ -708,7 +711,7 @@ def advance_level():
 
 def reset_game():
     """Reset game variables."""
-    global lives, score, request_timer, snake_segments, game_state, current_level, food
+    global lives, score, request_timer, snake_segments, game_state, current_level, food, snake_request
     lives = 3
     score = 0
     request_timer = request_time_limit
@@ -716,6 +719,7 @@ def reset_game():
     game_state = STATE_PLAYING
     current_level = 1
     food = spawn_food()
+    pick_new_request()
 
 def update_game(dt):
     """Update game logic."""
@@ -754,16 +758,24 @@ def update_game(dt):
 
 def handle_events():
     """Handle pygame events."""
-    global running, game_state, current_gradient, project_approach_active
-    global background_stars, screen_width, screen_height
-    global running, game_state, current_gradient, project_approach_active
-    
+    global game_state, current_gradient, project_approach_active
+    global background_stars, screen_width, screen_height, snake_direction
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False
-        
+
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+            # Snake movement: arrow keys and WASD.
+            if event.key in (pygame.K_UP, pygame.K_w):
+                snake_direction = (0, -1)
+            elif event.key in (pygame.K_DOWN, pygame.K_s):
+                snake_direction = (0, 1)
+            elif event.key in (pygame.K_LEFT, pygame.K_a):
+                snake_direction = (-1, 0)
+            elif event.key in (pygame.K_RIGHT, pygame.K_d):
+                snake_direction = (1, 0)
+            elif event.key == pygame.K_ESCAPE:
                 return False
             elif event.key == pygame.K_SPACE:
                 project_approach_active = not project_approach_active
