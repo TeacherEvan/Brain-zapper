@@ -710,14 +710,22 @@ def advance_level():
 
 
 def reset_game():
-    """Reset game variables."""
+    """Reset game variables.
+
+    Re-reads LEVELS[1] for request_time_limit and snake_speed so a reset after
+    advancing levels restores the level-1 defaults instead of leaving the
+    last level's mutated values in place.
+    """
     global lives, score, request_timer, snake_segments, game_state, current_level, food, snake_request
+    global request_time_limit, snake_speed
     lives = 3
     score = 0
+    current_level = 1
+    request_time_limit = LEVELS[1]["time"]
+    snake_speed = int(3 * LEVELS[1]["speed_mult"])
     request_timer = request_time_limit
     snake_segments = [(screen_width//2, screen_height//2 + i*20) for i in range(5)]
     game_state = STATE_PLAYING
-    current_level = 1
     food = spawn_food()
     pick_new_request()
 
