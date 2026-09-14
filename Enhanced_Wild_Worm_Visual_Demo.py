@@ -777,7 +777,7 @@ def handle_events():
             # Snake movement: arrow keys and WASD.
             if event.key in (pygame.K_UP, pygame.K_w):
                 snake_direction = (0, -1)
-            elif event.key in (pygame.K_DOWN, pygame.K_s):
+            elif event.key == pygame.K_DOWN:
                 snake_direction = (0, 1)
             elif event.key in (pygame.K_LEFT, pygame.K_a):
                 snake_direction = (-1, 0)
